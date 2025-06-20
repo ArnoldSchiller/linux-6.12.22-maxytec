@@ -1,0 +1,27 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * DTS File for HiSilicon Hi3798mv200 SoC.
+ *
+ * Copyright (c) 2016-2017 HiSilicon Technologies Co., Ltd.
+ */
+
+#include <dt-bindings/clock/histb-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/reset/ti-syscon.h>
+#include "hi3798mv200.dtsi"
+
+/ {
+    model = "Hisilicon Hi3798MV200";
+    compatible = "hisilicon,hi3798mv200";
+
+    memory@0 {
+        device_type = "memory";
+        reg = <0x0 0x40000000>;
+    };
+
+    chosen {
+        stdout-path = "serial0:115200n8";
+    };
+};

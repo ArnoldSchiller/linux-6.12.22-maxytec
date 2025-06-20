@@ -1,0 +1,79 @@
+/dts-v1/;
+
+#include <dt-bindings/gpio/gpio.h>
+#include "hi3798mv200.dtsi"
+
+/ {
+    model = "Maxytec Multise";
+    compatible = "maxytec,multise", "hisilicon,hi3798mv200";
+
+    memory@0 {
+        device_type = "memory";
+        reg = <0x0 0x3db00000>;
+    };
+
+    chosen {
+        bootargs = "";
+        stdout-path = "";
+    };
+
+    aliases {
+        serial0 = &uart0;
+        led0 = &led_power;
+    };
+
+    leds {
+        compatible = "gpio-leds";
+        led_power: led-power {
+            label = "maxytec:power";
+            gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+            default-state = "on";
+        };
+    };
+
+    ir {
+        compatible = "gpio-ir-receiver";
+        gpios = <&gpio1 1 GPIO_ACTIVE_LOW>;
+        linux,rc-map-name = "rc-hisi";
+    };
+};
+
+&mmc0 {
+    bus-width = <8>;
+    non-removable;
+};
+
+&sd0 {
+    bus-width = <4>;
+    cd-gpios = <&gpio2 2 GPIO_ACTIVE_LOW>;
+};
+
+&uart0 {
+    status = "okay";
+};
+
+&eth0 {
+    phy-mode = "mii";
+    mac-address = [00 14 49 a4 96 31];
+    status = "okay";
+};
+
+&i2c0 {
+    status = "okay";
+};
+
+&ehci0 {
+    status = "okay";
+};
+
+&ohci0 {
+    status = "okay";
+};
+
+&xhci0 {
+    status = "okay";
+};
+
+&sata {
+    status = "okay";
+};

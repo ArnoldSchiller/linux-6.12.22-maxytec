@@ -1,0 +1,773 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * DTS File for HiSilicon Hi3798mv200 SoC.
+ *
+ * Copyright (c) 2016-2017 HiSilicon Technologies Co., Ltd.
+ */
+
+#include <dt-bindings/clock/histb-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/phy/phy.h>
+#include <dt-bindings/reset/ti-syscon.h>
+
+
+
+/ {
+    model = "Hisilicon Hi3798MV200 Maxytecse"; // Spezifischerer Modellname
+    compatible = "hisilicon,hi3798mv200"; // Häufig wird ein spezifischerer Compatible-String für das Board erwartet
+                                          // statt nur der Chip-Serie. Überprüfen Sie die Kernel-Dokumentation
+                                          // (Documentation/devicetree/bindings/) für "Hisilicon".
+    #address-cells = <0x01>;
+    #size-cells = <0x01>;
+    interrupt-parent = <&gic>; // Verweis auf den GIC-Node mittels Label
+
+    memory {
+        reg = <0x00 0x40000000>; // Überprüfen Sie hier die tatsächliche Größe des verfügbaren Speichers.
+                                 // Der Wert 0x40000000 entspricht 1GB. Ist das korrekt?
+    };
+
+    aliases {
+        // Aliase sind im Allgemeinen stabil, aber stellen Sie sicher, dass die Pfade zu den Nodes korrekt sind.
+        net_phy0 = "/soc/hieth@f9c30000/hieth_phy@0";
+        net_phy1 = "/soc/ethernet@f9840000";
+        net_phy_addr0 = "/soc/hieth@f9c30000/hieth_phy@0";
+        net_phy_addr1 = "/soc/ethernet@f9840000/ethernet_phy@0";
+        emmc = "/soc/himciv200.MMC@0xf9830000";
+        sd = "/soc/himciv200.SD@0xf9820000";
+        sdio = "/soc/himciv200.SD@0xf9c40000";
+        ohci0 = "/soc/ohci@0xf9880000";
+        ehci0 = "/soc/ehci@0xf9890000";
+        xhci0 = "/soc/xhci@0xf98a0000";
+        sata = "/soc/hiahci@0xF9900000";
+        sataphy = "/soc/hiahci-phy@0xF9900000";
+        pcie = "/soc/pcie@0xF0001000";
+        uart0 = "/soc/amba/uart@0xf8b00000";
+        uart2 = "/soc/amba/uart@0xf8b02000";
+        uart3 = "/soc/amba/uart@0xf8b03000";
+        fmc = "/soc/hifmc100.NAND@0xf9950000";
+        udc = "/soc/hiudc@0xf98c0000";
+        otg = "/soc/hi3798cv200.hiusbotg"; // Hier ist noch der Verweis auf "cv200"
+        i2c0 = "/soc/amba/i2c@0xf8b10000";
+        i2c1 = "/soc/amba/i2c@0xf8b11000";
+        i2c2 = "/soc/amba/i2c@0xf8b12000";
+        spi0 = "/soc/amba/spi@0xF8B1A000";
+        chiptrim = "/soc/chiptrim";
+    };
+
+    chosen {
+        // Der Bootargs-String ist sehr lang und spezifisch.
+        // Stellen Sie sicher, dass alle Pfade und Partitionsgrößen noch gültig sind.
+        // Der 'mem=' Parameter könnte je nach Kernel-Version und tatsächlichem RAM anders interpretiert werden.
+        // Überprüfen Sie, ob "mmz=" und "vmalloc=" noch die bevorzugte Methode sind oder ob es neuere Ansätze gibt.
+        bootargs = "root=/dev/mmcblk0p23 rootsubdir=linuxrootfs1 rootfstype=ext4 kernel=/dev/mmcblk0p19 console=ttyAMA0,115200 blkdevparts=mmcblk0:1M(fastboot),1M(bootargs),18M(recovery),2M(bootoptions),2M(deviceinfo),4M(baseparam),4M(pqparam),4M(logo),40M(fastplay),20M(boot),20M(trustedcore),4M(misc),1024M(system),150M(vendor),306M(e2tv),256M(cache),50M(dtbo),8M(securestore),16M(linuxkernel1),16M(linuxkernel2),16M(linuxkernel3),16M(linuxkernel4),-(userdata) mem=987M mmz=ddr,0,0,44M vmalloc=500M";
+    };
+
+    psci {
+        compatible = "arm,psci-0.2";
+        method = "smc";
+    };
+
+    cpus {
+        #address-cells = <0x01>;
+        #size-cells = <0x00>;
+        #cooling-cells = <0x02>;
+
+        cpu-map {
+            cluster0 {
+                // phandle und linux,phandle sollten auf den korrekten CPU-Node verweisen
+                linux,phandle = <&cpu0>; // Annahme: cpu0 ist der erste CPU im Cluster
+                phandle = <&cpu0>;
+
+                core0 {
+                    cpu = <&cpu0>;
+                };
+
+                core1 {
+                    cpu = <&cpu1>;
+                };
+
+                core2 {
+                    cpu = <&cpu2>;
+                };
+
+                core3 {
+                    cpu = <&cpu3>;
+                };
+            };
+        };
+
+        cpu@0 {
+            compatible = "arm,cortex-a53";
+            device_type = "cpu";
+            reg = <0x00>;
+            enable-method = "psci";
+            linux,phandle = <&cpu0>; // Label für Verweise
+            phandle = <&cpu0>;
+        };
+
+        cpu@1 {
+            compatible = "arm,cortex-a53";
+            device_type = "cpu";
+            reg = <0x01>;
+            enable-method = "psci";
+            linux,phandle = <&cpu1>;
+            phandle = <&cpu1>;
+        };
+
+        cpu@2 {
+            compatible = "arm,cortex-a53";
+            device_type = "cpu";
+            reg = <0x02>;
+            enable-method = "psci";
+            linux,phandle = <&cpu2>;
+            phandle = <&cpu2>;
+        };
+
+        cpu@3 {
+            compatible = "arm,cortex-a53";
+            device_type = "cpu";
+            reg = <0x03>;
+            enable-method = "psci";
+            linux,phandle = <&cpu3>;
+            phandle = <&cpu3>;
+        };
+    };
+
+    // Global Interrupt Controller (GIC)
+    interrupt-controller@f1001000 { // Umbenennung mit Adresse für Klarheit und Label
+        compatible = "arm,cortex-a9-gic"; // Überprüfen Sie, ob dieser Compatible-String noch aktuell ist.
+                                          // Für Cortex-A53 sollte es eher "arm,gic-400" oder ähnliches sein.
+                                          // Suchen Sie in der Kernel-Dokumentation für "arm,gic".
+        #interrupt-cells = <0x03>;
+        #address-cells = <0x00>;
+        interrupt-controller;
+        reg = <0xf1001000 0x1000 0xf1002000 0x100>;
+        linux,phandle = <&gic>; // Label für Verweise
+        phandle = <&gic>;
+    };
+
+    clocks {
+        xtal_clk: xtal_clk { // Label hinzufügen
+            compatible = "fixed-clock";
+            #clock-cells = <0x00>;
+            clock-frequency = <0x16e3600>; // 24MHz
+            clock-output-names = "clk24M";
+            linux,phandle = <&clk24M>; // Label für Verweise
+            phandle = <&clk24M>;
+        };
+
+        clk_54m: clk_54m { // Label hinzufügen
+            compatible = "fixed-clock";
+            #clock-cells = <0x00>;
+            clock-frequency = <0x337f980>; // 54MHz
+            clock-output-names = "clk54M";
+        };
+
+        clk_75m: clk_75m { // Label hinzufügen
+            compatible = "fixed-clock";
+            #clock-cells = <0x00>;
+            clock-frequency = <0x47868c0>; // 75MHz
+            clock-output-names = "clk75M";
+            linux,phandle = <&clk75M>; // Label für Verweise
+            phandle = <&clk75M>;
+        };
+    };
+
+    trusted_core {
+        compatible = "trusted_core"; // Wenn dies ein generischer Compatible-String ist, könnte er sich geändert haben.
+        interrupts = <0x00 0x40 0x04>;
+    };
+
+    firmware {
+        optee {
+            compatible = "linaro,optee-tz";
+            method = "smc";
+        };
+    };
+
+    soc {
+        #address-cells = <0x01>;
+        #size-cells = <0x01>;
+        compatible = "simple-bus";
+        device_type = "soc";
+        ranges; // Wenn keine speziellen Adress-Mappings erforderlich sind, ist 'ranges;' ausreichend.
+                // <0x00 0x00 0xffffffff> ist redundant für simple-bus, da es die Standard-Mappings definiert.
+
+        chiptrim {
+            chiptrim1 = <0x01>;
+            chiptrim0 = <0x47313>;
+            compatible = "chiptrim"; // Überprüfen Sie, ob dieser Treiber noch existiert oder einen spezifischeren Compatible-String erwartet.
+        };
+
+        hisi_thermal: hisi-sensor@0 { // Label für Verweise
+            compatible = "arm,hisi-thermal"; // Oder spezifischer: "hisilicon,hi3798mv200-thermal"
+            #thermal-sensor-cells = <0x01>;
+            linux,phandle = <&hisi_thermal>;
+            phandle = <&hisi_thermal>;
+        };
+
+        thermal-zones {
+            soc_thermal: soc_thermal { // Label für Verweise
+                polling-delay = <0x3e8>;
+                polling-delay-passive = <0x64>;
+                sustainable-power = <0x9c4>;
+                thermal-sensors = <&hisi_thermal 0x00>; // Verweis auf das Thermal-Sensor-Device
+
+                trips {
+                    trip-point@0 {
+                        temperature = <0x17318>;
+                        hysteresis = <0x1388>;
+                        type = "passive";
+                    };
+
+                    trip-point@1 {
+                        temperature = <0x19a28>;
+                        hysteresis = <0x1388>;
+                        type = "passive";
+                        linux,phandle = <&trip1>; // Label für Verweise
+                        phandle = <&trip1>;
+                    };
+
+                    trip-point@2 {
+                        temperature = <0x1d4c0>;
+                        hysteresis = <0x1388>;
+                        type = "critical";
+                    };
+                };
+
+                cooling-maps {
+                    map0 {
+                        trip = <&trip1>; // Verweis auf den Trip-Point
+                        cooling-device = <&cpu_cooling 0x00 0x04>; // Annahme: cpu_cooling ist ein Cooling-Device
+                                                                  // Hier müsste das tatsächliche Cooling-Device
+                                                                  // und seine Parameter eingesetzt werden.
+                                                                  // z.B. CPU-Frequenz-Skalierung, Lüftersteuerung etc.
+                                                                  // Dies ist oft ein komplexerer Teil des DTS.
+                        contribution = <0x400>;
+                    };
+                };
+            };
+        };
+
+        amba {
+            compatible = "arm,amba-bus";
+            #address-cells = <0x01>;
+            #size-cells = <0x01>;
+            interrupt-parent = <&gic>; // Verweis auf den GIC-Node
+            ranges;
+
+            // GPIOs: Diese sind PL061 kompatibel. Achten Sie auf die Interrupt-Flags (0x04 für IRQF_TRIGGER_HIGH/EDGE)
+            // und die Clock-Referenz.
+            gpio0: gpio@f8b20000 { // Label hinzufügen
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b20000 0x1000>;
+                interrupts = <0x00 0x6c 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>; // Verweis auf die 24MHz Clock
+                clock-names = "apb_pclk";
+            };
+
+            gpio1: gpio@f8b21000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b21000 0x1000>;
+                interrupts = <0x00 0x6d 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio2: gpio@f8b22000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b22000 0x1000>;
+                interrupts = <0x00 0x6e 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio3: gpio@f8b23000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b23000 0x1000>;
+                interrupts = <0x00 0x6f 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio4: gpio@f8b24000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b24000 0x1000>;
+                interrupts = <0x00 0x70 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio5: gpio@f8004000 { // Achtung: Adresse f8004000 ist außerhalb des f8b-Bereichs. Ist das Absicht?
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8004000 0x1000>;
+                interrupts = <0x00 0x71 0x00>; // Hier Interrupt-Flag 0x00 (IRQF_TRIGGER_NONE)? Überprüfen!
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio6: gpio@f8b26000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b26000 0x1000>;
+                interrupts = <0x00 0x72 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio7: gpio@f8b27000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b27000 0x1000>;
+                interrupts = <0x00 0x73 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio8: gpio@f8b28000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b28000 0x1000>;
+                interrupts = <0x00 0x74 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            gpio9: gpio@f8b29000 {
+                compatible = "arm,pl061", "arm,primecell";
+                arm,primecell-periphid = <0x41061>;
+                reg = <0xf8b29000 0x1000>;
+                interrupts = <0x00 0x75 0x04>;
+                gpio-controller;
+                #gpio-cells = <0x02>;
+                interrupt-controller;
+                #interrupt-cells = <0x02>;
+                clocks = <&clk24M>;
+                clock-names = "apb_pclk";
+            };
+
+            watchdog@f8a2c000 {
+                compatible = "arm,sp805-wdt", "arm,primecell";
+                arm,primecell-periphid = <0x141805>;
+                reg = <0xf8a2c000 0x1000>;
+                clocks = <&clk24M>; // Verweis auf die 24MHz Clock
+                clock-names = "apb_pclk";
+            };
+
+            // I2C Controller
+            i2c@f8b10000 {
+                compatible = "hisilicon,hi-i2c"; // Oder spezifischer: "hisilicon,hi3798mv200-i2c"
+                reg = <0xf8b10000 0x1000>;
+                interrupts = <0x00 0x26 0x04>;
+                clock-frequency = <0x61a80>; // 400kHz
+                clocks = <&hisilicon_clock 0x1ac>; // Verweis auf den Hisilicon Clock Controller
+                clock-names = "apb_pclk";
+                #address-cells = <0x01>;
+                #size-cells = <0x00>;
+                // Hier könnten I2C-Geräte als Subnodes hinzugefügt werden.
+            };
+
+            i2c@f8b11000 {
+                compatible = "hisilicon,hi-i2c";
+                reg = <0xf8b11000 0x1000>;
+                interrupts = <0x00 0x27 0x04>;
+                clock-frequency = <0x61a80>;
+                clocks = <&hisilicon_clock 0x1b0>;
+                clock-names = "apb_pclk";
+                #address-cells = <0x01>;
+                #size-cells = <0x00>;
+            };
+
+            i2c@f8b12000 {
+                compatible = "hisilicon,hi-i2c";
+                reg = <0xf8b12000 0x1000>;
+                interrupts = <0x00 0x28 0x04>;
+                clock-frequency = <0x61a80>;
+                clocks = <&hisilicon_clock 0x1b4>;
+                clock-names = "apb_pclk";
+                #address-cells = <0x01>;
+                #size-cells = <0x00>;
+            };
+
+            // SPI Controller
+            spi@f8b1a000 {
+                compatible = "arm,pl022", "arm,primecell";
+                arm,primecell-periphid = <0x41022>;
+                interrupts = <0x00 0x2d 0x04>;
+                reg = <0xf8b1a000 0x1000>;
+                num-cs = <0x02>;
+                #address-cells = <0x01>;
+                #size-cells = <0x00>;
+                clocks = <&hisilicon_clock 0x70>;
+                clock-names = "apb_pclk";
+                pl022,rt; // Diese Property könnte kernelseitig eine andere Interpretation haben oder obsolet sein. Überprüfen.
+                // Hier könnten SPI-Geräte als Subnodes hinzugefügt werden.
+            };
+
+            ir@f8001000 {
+                compatible = "hisilicon,hix5hd2-ir"; // Überprüfen Sie diesen Compatible-String
+                reg = <0xf8001000 0x1000>;
+                interrupts = <0x00 0x2f 0x04>;
+                clocks = <&hisilicon_clock 0x384>;
+                linux,rc-map-name = "rc-hisi"; // Dies ist wahrscheinlich noch gültig.
+            };
+
+            // PMU (Performance Monitoring Unit)
+            // Die Compatible-Strings für PMUs haben sich oft geändert.
+            // Für Cortex-A53 ist es eher "arm,armv8-pmu". Überprüfen Sie die Kernel-Dokumentation.
+            armv7-pmu {
+                compatible = "arm,armv8-pmu"; // Wahrscheinlich für A53
+                interrupts = <0x00 0x08 0x04 0x00 0x09 0x04 0x00 0x0a 0x04 0x00 0x0b 0x04>;
+            };
+
+            timer@hisp804 {
+                compatible = "hisilicon,hisp804"; // Überprüfen Sie diesen Compatible-String
+                reg = <0xf8a29000 0x20 0xf8a2a000 0x20 0xf8a2a020 0x20 0xf8a2b000 0x20 0xf8a2b020 0x20>;
+                interrupts = <0x00 0x1a 0x04 0x00 0x3b 0x04 0x00 0x1b 0x04 0x00 0x3c 0x04>;
+                clocks = <&clk24M>; // Verweis auf die 24MHz Clock
+                clock-names = "apb_pclk";
+            };
+
+            // UARTs
+            uart0: uart@f8b00000 { // Label hinzufügen
+                compatible = "arm,pl011", "arm,primecell";
+                arm,primecell-periphid = <0x241011>;
+                reg = <0xf8b00000 0x1000>;
+                interrupts = <0x00 0x31 0x04>;
+                clocks = <&clk75M>; // Verweis auf die 75MHz Clock
+                clock-names = "apb_pclk";
+                status = "okay";
+            };
+
+            uart2: uart@f8b02000 {
+                compatible = "arm,pl011", "arm,primecell";
+                arm,primecell-periphid = <0x241011>;
+                reg = <0xf8b02000 0x1000>;
+                interrupts = <0x00 0x33 0x04>;
+                clocks = <&clk75M>;
+                clock-names = "apb_pclk";
+                status = "okay";
+            };
+
+            uart3: uart@f8b03000 {
+                compatible = "arm,pl011", "arm,primecell";
+                arm,primecell-periphid = <0x241011>;
+                reg = <0xf8b03000 0x1000>;
+                interrupts = <0x00 0x34 0x04>;
+                clocks = <&clk75M>;
+                clock-names = "apb_pclk";
+                status = "okay";
+            };
+        };
+
+        // MMC/SD Controller
+        himciv200_mmc: himciv200.MMC@0xf9830000 { // Label hinzufügen
+            compatible = "hi3798mv200,himciv200"; // Oder spezifischer: "hisilicon,hi3798mv200-mmc"
+            reg = <0xf9830000 0x1000 0xf8a21000 0x40>;
+            interrupts = <0x00 0x23 0x04>;
+            clocks = <&hisilicon_clock 0xa0>;
+            clock-names = "clk";
+            caps = <0xc0000847>; // Diese Werte sind treiberabhängig, überprüfen Sie die Bindings.
+            caps2 = <0x8020>;
+            max-frequency = <0x2faf080>; // 50MHz
+            status = "okay";
+            // Zusätzliche Properties könnten notwendig sein, z.B. pinctrl, vmmc-supply, vqmmc-supply etc.
+        };
+
+        himciv200_sd: himciv200.SD@0xf9820000 { // Label hinzufügen
+            compatible = "hi3798mv200,himciv300_sd"; // Oder spezifischer: "hisilicon,hi3798mv200-sd"
+                                                   // Beachten Sie "himciv300_sd" hier. Ist das gewollt?
+            reg = <0xf9820000 0x1000 0xf8a210c0 0x40>;
+            interrupts = <0x00 0x22 0x04>;
+            clocks = <&hisilicon_clock 0x9c>;
+            clock-names = "clk";
+            ldo-addr = <0xf8a2011c>;
+            ldo-shift = <0x00>;
+            caps = <0x8007000f>;
+            caps2 = <0x4000>;
+            max-frequency = <0x2faf080>;
+            status = "okay";
+            // Zusätzliche Properties wie für MMC könnten hier auch notwendig sein.
+        };
+
+        himciv200_sdio: himciv200.SD@0xf9c40000 { // Label hinzufügen
+            compatible = "hi3798mv200,himciv200"; // Oder spezifischer: "hisilicon,hi3798mv200-sdio"
+            reg = <0xf9c40000 0x1000 0xf8a21090 0x20>;
+            interrupts = <0x00 0x56 0x04>;
+            clocks = <&hisilicon_clock 0x28c>;
+            clock-names = "clk";
+            caps = <0x8007000f>;
+            caps2 = <0x4000>;
+            max-frequency = <0x2faf080>;
+            status = "okay";
+            // Auch hier Pinctrl, Regulator etc. überprüfen.
+        };
+
+        hifmc100_nand: hifmc100.NAND@0xf9950000 { // Label hinzufügen
+            compatible = "hisilicon,hifmc100"; // Überprüfen Sie diesen Compatible-String für den 6.12 Kernel.
+            reg = <0xf9950000 0x100 0xfe200000 0x2176>;
+            interrupts = <0x00 0x36 0x04>;
+            clocks = <&hisilicon_clock 0x380>;
+            clock-names = "clk";
+            status = "okay";
+        };
+
+        hisilicon_clock: hisilicon_clock { // Label hinzufügen
+            compatible = "hisilicon,hi3798mv200-clock", "hisilicon,clock-reset"; // Etwas spezifischer
+            reg = <0xf8a22000 0x400 0xf8a20000 0x848>;
+            #clock-cells = <0x01>;
+            #reset-cells = <0x02>;
+            linux,phandle = <&hisilicon_clock>;
+            phandle = <&hisilicon_clock>;
+        };
+
+        // Ethernet Controller 1
+        hieth: hieth@f9c30000 { // Label hinzufügen
+            compatible = "hisilicon,hieth"; // Überprüfen Sie diesen Compatible-String
+            clocks = <&hisilicon_clock 0xd0>;
+            clock-names = "clk";
+            reg = <0xf9c30000 0x4000>;
+            interrupts = <0x00 0x48 0x04>;
+            phy-handle = <&hieth_phy0>; // Verweis auf den PHY-Node mittels Label
+            #address-cells = <0x01>;
+            #size-cells = <0x00>;
+            status = "okay";
+
+            hieth_phy0: hieth_phy@0 { // Label hinzufügen
+                reg = <0x02>; // PHY address
+                interrupts = <0x00 0x49 0x04 0x00 0x6b 0x04>;
+                mac-address = [00 14 49 a4 96 31]; // Wenn die MAC-Adresse fix ist
+                phy-mode = "rgmii";
+                // gpio-based PHY reset oder power up/down
+                // phy-reset-gpio = <&gpioX Y Z>;
+                // internal-phy; // Wenn der PHY im SoC integriert ist, sollte dies noch passen.
+                linux,phandle = <&hieth_phy0>;
+                phandle = <&hieth_phy0>;
+            };
+        };
+
+        // Ethernet Controller 2
+        higmac: ethernet@f9840000 { // Label hinzufügen (Umbenennung von "ethernet" zu "higmac" für Klarheit)
+            compatible = "hisilicon,higmac"; // Überprüfen Sie diesen Compatible-String
+            reg = <0xf9840000 0x1000 0xf984300c 0x04>;
+            interrupts = <0x00 0x47 0x04>;
+            clocks = <&hisilicon_clock 0x19c>, <&hisilicon_clock 0x1a4>;
+            clock-names = "higmac_clk", "macif_clk";
+            status = "okay";
+            resets = <&hisilicon_clock 0xcc 0x00>, <&hisilicon_clock 0xcc 0x02>, <&hisilicon_clock 0xcc 0x05>; // Verweise anpassen
+            reset-names = "port_reset", "macif_reset", "phy_reset";
+            #address-cells = <0x01>;
+            #size-cells = <0x00>;
+            mac-address = [00 14 49 a4 96 31];
+            phy-handle = <&ethernet_phy0>; // Verweis auf den PHY-Node mittels Label
+            phy-mode = "mii";
+            // gpio-based PHY reset oder power up/down
+            // phy-reset-gpio = <&gpioX Y Z>; // Beispiel
+
+            ethernet_phy0: ethernet_phy@0 { // Label hinzufügen
+                reg = <0xff>; // PHY-Adresse. "0xff" könnte ein Platzhalter sein, oder der Treiber kümmert sich darum.
+                linux,phandle = <&ethernet_phy0>;
+                phandle = <&ethernet_phy0>;
+            };
+        };
+
+        // USB Controller (EHCI, OHCI, UDC, XHCI)
+        ehci@f9890000 {
+            compatible = "generic-ehci"; // Oder spezifischer: "hisilicon,hi3798mv200-ehci"
+            reg = <0xf9890000 0x10000>;
+            interrupts = <0x00 0x42 0x04>;
+            clocks = <&hisilicon_clock 0xb8>;
+            clock-names = "clk";
+            status = "okay";
+        };
+
+        ohci@f9880000 {
+            compatible = "generic-ohci"; // Oder spezifischer: "hisilicon,hi3798mv200-ohci"
+            reg = <0xf9880000 0x10000>;
+            interrupts = <0x00 0x43 0x04>;
+            clocks = <&hisilicon_clock 0xb8>;
+            clock-names = "clk";
+            status = "okay";
+        };
+
+        hiudc@f98c0000 {
+            compatible = "hiudc"; // Oder spezifischer: "hisilicon,hi3798mv200-udc"
+            reg = <0xf98c0000 0x40000>;
+            interrupts = <0x00 0x44 0x04>;
+            clocks = <&hisilicon_clock 0xb8>;
+            clock-names = "clk";
+            status = "okay";
+        };
+
+        // Hier ist der "cv200" Eintrag, der wahrscheinlich umbenannt oder angepasst werden sollte.
+        // Wenn dieser OTG-Treiber spezifisch für mv200 ist, sollte der Compatible-String das widerspiegeln.
+        hiusbotg: hiusbotg@f9880000 { // Umbenennung des Nodes, da er eine Adresse hat.
+            compatible = "hisilicon,hi3798mv200-hiusbotg"; // Anpassen des Compatible-Strings
+            reg = <0xf9880000 0x10000 0xf9890000 0x10000 0xf8a2012c 0x04>;
+            host_time = <0x5dc 0x04>;
+            device_time = <0x3e8 0x04>;
+            status = "okay";
+        };
+
+        xhci@f98a0000 {
+            compatible = "generic-xhci"; // Oder spezifischer: "hisilicon,hi3798mv200-xhci"
+            reg = <0xf98a0000 0x10000>;
+            interrupts = <0x00 0x45 0x04>;
+            clocks = <&hisilicon_clock 0xb0>;
+            clock-names = "clk";
+            status = "okay";
+        };
+
+        hiddr_watchpoint@f8a36000 {
+            compatible = "hisilicon,ddr-watchpoint"; // Übliche Nomenklatur
+            reg = <0xf8a36000 0x1000>;
+            interrupts = <0x00 0x1f 0x04>;
+        };
+
+        hiddr_watchzone@f8a35000 {
+            compatible = "hisilicon,ddr-watchzone"; // Übliche Nomenklatur
+            reg = <0xf8a35000 0x1000>;
+            interrupts = <0x00 0x1f 0x04>;
+        };
+
+        gpu_regulator: regulator@f8a23020 { // Label hinzufügen
+            compatible = "hisilicon,hi3798mv200-volt"; // Überprüfen Sie, ob es einen spezifischen Regulator-Treiber gibt.
+            reg = <0xf8a23020 0x04>;
+            reg-names = "Hisilicon GPU Regulator";
+            regulator-name = "vdd-gpu";
+            regulator-min-microvolt = <0xaae60>;
+            regulator-max-microvolt = <0x1312d0>;
+            regulator-always-on;
+            status = "okay";
+            linux,phandle = <&gpu_regulator>;
+            phandle = <&gpu_regulator>;
+        };
+
+        gpu@f9200000 {
+            compatible = "arm,mali-450", "arm,mali-utgard";
+            interrupt-parent = <&gic>; // Verweis auf den GIC-Node
+            reg = <0xf9200000 0x10000>;
+            interrupts = <0x00 0x5e 0x04 0x00 0x5e 0x04 0x00 0x5e 0x04 0x00 0x5e 0x04 0x00 0x5e 0x04 0x00 0x5e 0x04 0x00 0x5e 0x04 0x00 0x5e 0x04>;
+            interrupt-names = "IRQGP", "IRQGPMMU", "IRQPP0", "IRQPPMMU0", "IRQPP1", "IRQPPMMU1", "IRQPMU", "IRQPP";
+            // Diese PMU-Konfigurationsparameter sind sehr spezifisch und sollten überprüft werden.
+            pmu_domain_config = <0x01 0x02 0x02 0x00 0x00 0x00 0x00 0x00 0x00 0x01 0x02 0x00>;
+            pmu_switch_delay = <0x1ff>;
+            #cooling-cells = <0x02>;
+            clocks = <&hisilicon_clock 0x124>;
+            clock-names = "clk_mali";
+            mali-supply = <&gpu_regulator>; // Verweis auf den GPU-Regulator
+            default-frequency = <0x23c34600>;
+            max-utilization = <0x3c>;
+            min-utilization = <0x1e>;
+            max-frequency = <0x2faf0800>;
+            min-frequency = <0xbebc200>;
+            // Die "operating-points-tt/ss/ff" Properties könnten sich in neueren Kerneln geändert haben
+            // oder durch ein Generic-Table-Format ersetzt worden sein.
+            operating-points-tt = <0xbebc200 0xd4670 0x11e1a300 0xd4670 0x17d78400 0xd4670 0x1dcd6500 0xd4670 0x23c34600 0xd4670 0x283baec0 0xdbba0 0x2cb41780 0xde2b0 0x2faf0800 0xe30d0>;
+            operating-points-ss = <0xbebc200 0xde2b0 0x11e1a300 0xde2b0 0x17d78400 0xde2b0 0x1dcd6500 0xde2b0 0x23c34600 0xde2b0 0x283baec0 0xde2b0 0x2cb41780 0xe57e0 0x2faf0800 0xea600>;
+            operating-points-ff = <0xbebc200 0xcaa30 0x11e1a300 0xcaa30 0x17d78400 0xcaa30 0x1dcd6500 0xcaa30 0x23c34600 0xcaa30 0x283baec0 0xcf850 0x2cb41780 0xd9490 0x2faf0800 0xdbba0>;
+            operating-points-ff-98mv300 = <0xbebc200 0xcd140 0x11e1a300 0xcd140 0x17d78400 0xcd140 0x1dcd6500 0xcd140 0x202fbf00 0xcd140 0x23c34600 0xcd140 0x283baec0 0xcf850 0x33428f00 0xf1b30>;
+            operating-points-tt-98mv300 = <0xbebc200 0xd6d80 0x11e1a300 0xd6d80 0x17d78400 0xd6d80 0x1dcd6500 0xd6d80 0x202fbf00 0xd6d80 0x23c34600 0xd6d80 0x283baec0 0xdbba0 0x33428f00 0xf1b30>;
+            operating-points-ss-98mv300 = <0xbebc200 0xde2b0 0x11e1a300 0xde2b0 0x17d78400 0xde2b0 0x1dcd6500 0xde2b0 0x202fbf00 0xde2b0 0x23c34600 0xde2b0 0x283baec0 0xe7ef0 0x33428f00 0xf1b30>;
+            operating-points-tt-youtube = <0xbebc200 0xd4670 0x11e1a300 0xd4670 0x17d78400 0xd4670 0x1dcd6500 0xd4670 0x23c34600 0xd4670 0x283baec0 0xdbba0 0x2faf0800 0xe30d0>;
+            operating-points-ss-youtube = <0xbebc200 0xde2b0 0x11e1a300 0xde2b0 0x17d78400 0xde2b0 0x1dcd6500 0xde2b0 0x23c34600 0xde2b0 0x283baec0 0xde2b0 0x2faf0800 0xea600>;
+            operating-points-ff-youtube = <0xbebc200 0xcaa30 0x11e1a300 0xcaa30 0x17d78400 0xcaa30 0x1dcd6500 0xcaa30 0x23c34600 0xcaa30 0x283baec0 0xcf850 0x2faf0800 0xdbba0>;
+            cooling-min-state = <0x00>;
+            cooling-max-state = <0x07>;
+            status = "okay";
+        };
+
+        pcie@f0001000 {
+            compatible = "hisilicon,hisilicon-pcie", "snps,dw-pcie";
+            reg = <0xf0001000 0x200 0xf0000000 0x1000 0xf9860000 0x200>;
+            interrupts = <0x00 0x83 0x04>;
+            clocks = <&hisilicon_clock 0x18c>;
+            clock-names = "clk";
+            #address-cells = <0x03>;
+            #size-cells = <0x02>;
+            device_type = "pci";
+            // Die "ranges" Property muss sehr sorgfältig überprüft werden,
+            // da sie das Mapping von PCI-Adressen auf CPU-Adressen definiert.
+            // Fehler hier führen zu schwerwiegenden Problemen.
+            ranges = <0x800 0x00 0xf2100000 0xf2100000 0x00 0x20000 // MMIO
+                      0x81000000 0x00 0x00 0xf4000000 0x00 0x10000 // I/O
+                      0x82000000 0x00 0xf3000000 0xf3000000 0x00 0x1000000>; // Memory
+            num-lanes = <0x01>;
+            status = "okay";
+            // Viele PCIe-Controller benötigen zusätzliche Properties wie "reset-gpios", "power-gpios", "vpcie-supply" etc.
+            // Überprüfen Sie die Kernel-Dokumentation für "snps,dw-pcie".
+        };
+
+        hiahci: hiahci@f9900000 { // Label hinzufügen
+            compatible = "generic-ahci"; // Oder spezifischer: "hisilicon,hi3798mv200-ahci"
+            reg = <0xf9900000 0x1000>;
+            interrupts = <0x00 0x46 0x04>;
+            phys = <&sata_phy>; // Verweis auf den PHY-Node mittels Label
+            phy-names = "sata-phy";
+            clocks = <&hisilicon_clock 0xa8>;
+            clock-names = "clk";
+            status = "okay";
+        };
+
+        sata_phy: hiahci-phy@f9900000 { // Label hinzufügen
+            compatible = "hiahci-phy"; // Oder spezifischer: "hisilicon,hi3798mv200-sata-phy"
+            reg = <0xf9900000 0x1000 0xf8a20000 0x3000>;
+            #phy-cells = <0x00>;
+            status = "okay";
+            linux,phandle = <&sata_phy>;
+            phandle = <&sata_phy>;
+        };
+
+        virtdev {
+            compatible = "virt-device"; // Dies ist ein sehr generischer Compatible-String und könnte Probleme verursachen.
+                                       // Wenn es sich um ein spezifisches Hisilicon-Virtuelles-Gerät handelt,
+                                       // sollte ein spezifischerer Compatible-String verwendet werden.
+            // Die lange Liste der Interrupts und Interrupt-Namen sollte korrekt sein.
+            interrupts = <0x00 0x24 0x04 0x00 0x25 0x04 0x00 0x2f 0x04 0x00 0x2f 0x04 0x00 0x30 0x04 0x00 0x30 0x04 0x00 0x47 0x04 0x00 0x4b 0x04 0x00 0x52 0x04 0x00 0x54 0x04 0x00 0x58 0x04 0x00 0x5a 0x04 0x00 0x5b 0x04 0x00 0x5b 0x04 0x00 0x5d 0x04 0x00 0x5e 0x04 0x00 0x5f 0x04 0x00 0x60 0x04 0x00 0x61 0x04 0x00 0x65 0x04 0x00 0x66 0x04 0x00 0x68 0x04 0x00 0x69 0x04 0x00 0x6a 0x04 0x00 0x7e 0x04 0x00 0x92 0x04 0x00 0x93 0x04 0x00 0x94 0x04 0x00 0x95 0x04 0x00 0x96 0x04>;
+            interrupt-names = "sci0", "sci1", "ir_std", "ir_s2", "keyled_ct1642", "keyled_std", "gsf0", "multicipher", "dmx", "aiao", "hdmi", "vdp", "tde", "gfx2d", "vpss0", "gpu", "vdec_vdh", "png", "jpeg", "venc", "jpge", "vdec_scd", "vdec_vdh_safe", "vdec_scd_safe", "cipher", "SecInvokeirq", "hdmi_cec", "mmu_vdh_safe", "mmu_vdh", "pastc";
+        };
+    };
+};

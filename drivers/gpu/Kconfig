@@ -1,0 +1,2 @@
+config MALI_MIDGARD
+    bool "ARM Mali Midgard support"

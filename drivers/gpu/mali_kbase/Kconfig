@@ -1,0 +1,13 @@
+menuconfig MALI_MIDGARD
+    bool "Mali Midgard GPU support"
+    default y
+    help
+      Enables the Mali Midgard GPU driver
+
+if MALI_MIDGARD
+
+config MALI_PLATFORM_NAME
+    string "Mali platform"
+    default "devicetree"
+
+endif
