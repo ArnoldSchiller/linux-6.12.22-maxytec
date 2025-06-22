@@ -7,10 +7,6 @@
     model = "Maxytec Multise";
     compatible = "maxytec,multise", "hisilicon,hi3798mv200";
 
-    memory@0 {
-        device_type = "memory";
-        reg = <0x0 0x3db00000>;
-    };
 
     chosen {
         bootargs = "";
